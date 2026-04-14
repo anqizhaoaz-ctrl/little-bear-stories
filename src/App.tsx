@@ -229,12 +229,26 @@ export default function App() {
           </div>
           <div className="flex flex-col">
             <span className="font-display font-bold text-lg text-brand-navy leading-none">小熊睡前故事</span>
-            {user.isAnonymous && <span className="text-[10px] text-brand-red font-bold uppercase tracking-tighter">游客模式</span>}
+            {user.isAnonymous ? (
+              <span className="text-[10px] text-brand-red font-bold uppercase tracking-tighter">游客模式</span>
+            ) : (
+              <span className="text-[10px] text-brand-blue font-bold uppercase tracking-tighter">已登录: {user.displayName || '用户'}</span>
+            )}
           </div>
         </div>
-        <button onClick={logOut} className="p-2 text-brand-muted hover:text-brand-red transition-colors">
-          <LogOut className="w-6 h-6" />
-        </button>
+        <div className="flex items-center gap-3">
+          {!user.isAnonymous && user.photoURL && (
+            <img 
+              src={user.photoURL} 
+              alt={user.displayName || ''} 
+              className="w-8 h-8 rounded-full border border-brand-muted/20"
+              referrerPolicy="no-referrer"
+            />
+          )}
+          <button onClick={logOut} className="p-2 text-brand-muted hover:text-brand-red transition-colors" title="退出登录">
+            <LogOut className="w-6 h-6" />
+          </button>
+        </div>
       </header>
 
       {/* Hero */}
@@ -289,39 +303,52 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {stories.map((story, i) => (
                     <motion.div 
                       key={story.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.1 }}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.05 }}
                       onClick={() => setSelectedStory(story)}
-                      className="story-card cursor-pointer group"
+                      className="aspect-square bg-white rounded-2xl shadow-sm border border-brand-muted/10 hover:shadow-xl hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col relative overflow-hidden"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex gap-2">
-                          <span className="px-3 py-1 bg-brand-muted/10 text-brand-blue text-xs font-bold rounded-full">
+                      {/* Story Cover Image */}
+                      <div className="absolute inset-0 z-0 bg-brand-muted/5">
+                        <img 
+                          src={`https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=400&q=80&sig=${encodeURIComponent(story.imageSearchTerm || story.title)}`}
+                          alt={story.title}
+                          className="w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity duration-500"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(story.title)}`;
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent" />
+                      </div>
+
+                      <div className="z-10 p-4 flex flex-col justify-between h-full">
+                        <div className="flex flex-wrap gap-1">
+                          <span className="px-2 py-1 bg-brand-muted/10 text-brand-blue text-[10px] font-bold rounded-md uppercase tracking-wider">
                             {story.type}
                           </span>
                           {history.some(h => h.title === story.title && h.isRead) && (
-                            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1">
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-md flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" />
-                              已读完
+                              已读
                             </span>
                           )}
                         </div>
-                        <span className="flex items-center gap-1 text-brand-muted text-xs">
-                          <MapPin className="w-3 h-3" />
-                          {story.originCountry}
-                        </span>
+
+                        <div className="space-y-1">
+                          <h3 className="text-brand-navy font-display font-bold text-sm md:text-base leading-tight group-hover:text-brand-red transition-colors line-clamp-3">
+                            {story.title}
+                          </h3>
+                          <p className="text-[10px] text-brand-muted font-medium">
+                            {story.originCountry}
+                          </p>
+                        </div>
                       </div>
-                      <h3 className="text-xl font-bold text-brand-navy group-hover:text-brand-red transition-colors">
-                        {story.title}
-                      </h3>
-                      <p className="text-brand-muted line-clamp-2 mt-2 text-sm leading-relaxed">
-                        {story.content}
-                      </p>
                     </motion.div>
                   ))}
                 </div>
@@ -345,32 +372,40 @@ export default function App() {
                   <p className="text-brand-muted">还没有读过的故事哦</p>
                 </div>
               ) : (
-                Object.entries(
-                  history.filter(h => !h.isUnliked && h.isRead).reduce((acc, curr) => {
-                    const date = new Date(curr.readAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
-                    if (!acc[date]) acc[date] = [];
-                    acc[date].push(curr);
-                    return acc;
-                  }, {} as Record<string, StoryRecord[]>)
-                ).map(([date, dateStories], i) => (
-                  <div key={date} className="space-y-2">
-                    <h4 className="text-xs font-bold text-brand-muted uppercase tracking-wider pl-2">{date}</h4>
-                    <div className="bg-white rounded-2xl border border-brand-muted/10 divide-y divide-brand-muted/5 overflow-hidden">
-                      {dateStories.map((record) => (
-                        <div 
-                          key={record.id}
-                          onClick={() => setSelectedStory(record)}
-                          className="px-4 py-3 hover:bg-brand-muted/5 cursor-pointer flex items-center justify-between group transition-colors"
-                        >
-                          <span className="text-brand-navy font-medium group-hover:text-brand-red transition-colors">
-                            {record.title}
-                          </span>
-                          <span className="text-[10px] text-brand-muted">{record.originCountry}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {history.filter(h => !h.isUnliked && h.isRead).map((record, i) => (
+                    <motion.div 
+                      key={record.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.05 }}
+                      onClick={() => setSelectedStory(record)}
+                      className="aspect-square bg-white rounded-2xl p-4 shadow-sm border border-brand-muted/10 hover:shadow-xl hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col justify-between relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <History className="w-12 h-12 text-brand-navy" />
+                      </div>
+                      
+                      <div className="z-10 flex flex-col gap-1">
+                        <span className="px-2 py-1 bg-brand-muted/10 text-brand-blue text-[10px] font-bold rounded-md uppercase tracking-wider w-fit">
+                          {record.type}
+                        </span>
+                        <span className="text-[10px] text-brand-muted font-bold">
+                          {new Date(record.readAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+
+                      <div className="z-10 space-y-1">
+                        <h3 className="text-brand-navy font-display font-bold text-sm md:text-base leading-tight group-hover:text-brand-red transition-colors line-clamp-3">
+                          {record.title}
+                        </h3>
+                        <p className="text-[10px] text-brand-muted font-medium">
+                          {record.originCountry}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               )}
             </motion.div>
           )}
@@ -391,28 +426,34 @@ export default function App() {
                   <p className="text-brand-muted">还没有收藏的故事哦</p>
                 </div>
               ) : (
-                <div className="grid gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {history.filter(h => !h.isUnliked && h.isFavorite).map((record, i) => (
                     <motion.div 
                       key={record.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.1 }}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.05 }}
                       onClick={() => setSelectedStory(record)}
-                      className="story-card cursor-pointer group"
+                      className="aspect-square bg-white rounded-2xl p-4 shadow-sm border border-brand-muted/10 hover:shadow-xl hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col justify-between relative overflow-hidden"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="px-3 py-1 bg-brand-muted/10 text-brand-blue text-xs font-bold rounded-full">
+                      <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Heart className="w-12 h-12 text-brand-red" />
+                      </div>
+                      
+                      <div className="z-10">
+                        <span className="px-2 py-1 bg-brand-muted/10 text-brand-blue text-[10px] font-bold rounded-md uppercase tracking-wider">
                           {record.type}
                         </span>
-                        <span className="flex items-center gap-1 text-brand-muted text-xs">
-                          <MapPin className="w-3 h-3" />
-                          {record.originCountry}
-                        </span>
                       </div>
-                      <h3 className="text-xl font-bold text-brand-navy group-hover:text-brand-red transition-colors">
-                        {record.title}
-                      </h3>
+
+                      <div className="z-10 space-y-1">
+                        <h3 className="text-brand-navy font-display font-bold text-sm md:text-base leading-tight group-hover:text-brand-red transition-colors line-clamp-3">
+                          {record.title}
+                        </h3>
+                        <p className="text-[10px] text-brand-muted font-medium">
+                          {record.originCountry}
+                        </p>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
@@ -478,12 +519,24 @@ export default function App() {
               onClick={(e) => e.stopPropagation()}
               className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[40px] overflow-hidden flex flex-col relative shadow-2xl"
             >
-              <button 
-                onClick={() => setSelectedStory(null)}
-                className="absolute top-6 right-6 p-2 bg-brand-muted/10 rounded-full hover:bg-brand-red hover:text-white transition-all z-10"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="relative h-48 md:h-64 overflow-hidden bg-brand-muted/5">
+                <img 
+                  src={`https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80&sig=${encodeURIComponent(selectedStory.imageSearchTerm || selectedStory.title)}`}
+                  alt={selectedStory.title}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(selectedStory.title)}`;
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent" />
+                <button 
+                  onClick={() => setSelectedStory(null)}
+                  className="absolute top-6 right-6 p-2 bg-white/80 backdrop-blur-md rounded-full hover:bg-brand-red hover:text-white transition-all z-10 shadow-lg"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
               <div className="p-8 pb-4 space-y-4">
                 <div className="flex items-center gap-3">
