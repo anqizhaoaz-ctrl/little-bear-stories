@@ -18,10 +18,11 @@ export async function generateStories(unlikedThemes: string[] = [], readTitles: 
   2. 字数：每个故事200-400字。
   3. 类型：包含 寓言、成语故事、童话、民间传说、神话。
   4. 来源：参考格林童话、安徒生、伊索寓言、一千零一夜及中国古代经典。成语典故来源必须准确，不要虚构历史背景。
-  5. 避重：绝对不要生成包含以下主题或内容的故事：${unlikedThemes.join(', ')}。
-  6. 唯一性：绝对不要生成以下已经读过或不喜欢的故事标题：${readTitles.join(', ')}。
-  7. 语言：中文。
-  8. 结构：每个故事包含标题、内容、类型和起源国家。`;
+  5. 标题：使用原著或典故中的原始题目，不要添加额外的形容词或修饰语（例如：直接使用“丑小鸭”、“后羿射日”，而不是“勇敢的小鸭子”或“伟大的后羿射日”）。
+  6. 避重：绝对不要生成包含以下主题或内容的故事：${unlikedThemes.join(', ')}。
+  7. 唯一性：绝对不要生成以下已经读过或不喜欢的故事标题：${readTitles.join(', ')}。
+  8. 语言：中文。
+  9. 结构：每个故事包含标题、内容、类型和起源国家。`;
 
   const response = await ai.models.generateContent({
     model: "gemini-flash-latest",
