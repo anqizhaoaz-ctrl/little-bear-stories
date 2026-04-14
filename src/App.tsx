@@ -59,10 +59,11 @@ export default function App() {
     setLoading(true);
     setGenError(null);
     try {
-      // Filter out both read and unliked stories
-      const excludedTitles = history
-        .filter(h => h.isRead || h.isUnliked)
-        .map(h => h.title);
+      // Filter out all stories already in history (read, favorited, or unliked)
+      // AND also filter out the stories currently being displayed to ensure fresh content
+      const historyTitles = history.map(h => h.title);
+      const currentTitles = stories.map(s => s.title);
+      const excludedTitles = Array.from(new Set([...historyTitles, ...currentTitles]));
       
       const newStories = await generateStories(profile?.unlikedThemes || [], excludedTitles);
       setStories(newStories);
@@ -296,16 +297,27 @@ export default function App() {
                   <p className="text-brand-muted font-medium">正在为你编织奇妙故事...</p>
                 </div>
               ) : genError ? (
-                <div className="py-20 text-center space-y-4">
+                <div className="py-20 text-center space-y-4 px-6">
                   <div className="w-16 h-16 bg-brand-red/10 rounded-full flex items-center justify-center mx-auto">
                     <RefreshCw className="w-8 h-8 text-brand-red" />
                   </div>
-                  <p className="text-brand-red font-medium">{genError}</p>
+                  <div className="space-y-2">
+                    <p className="text-brand-navy font-bold text-lg">
+                      {genError.includes('429') || genError.includes('quota') 
+                        ? '哎呀，小熊累了' 
+                        : '故事书打不开了'}
+                    </p>
+                    <p className="text-brand-muted text-sm max-w-xs mx-auto">
+                      {genError.includes('429') || genError.includes('quota')
+                        ? '今天讲的故事太多啦，小熊需要休息一下。请稍后再来，或者先读读收藏的故事吧！'
+                        : '网络好像有点调皮，请稍后再试。'}
+                    </p>
+                  </div>
                   <button 
                     onClick={handleRefresh}
-                    className="px-6 py-2 bg-brand-red text-white rounded-full text-sm font-bold"
+                    className="px-8 py-3 bg-brand-navy text-white rounded-2xl font-bold hover:bg-brand-blue transition-colors"
                   >
-                    重试
+                    再试一次
                   </button>
                 </div>
               ) : (
