@@ -380,19 +380,22 @@ export default function App() {
                 ).map(([date, dateStories], i) => (
                   <div key={date} className="space-y-2">
                     <h4 className="text-xs font-bold text-brand-muted uppercase tracking-wider pl-2">{date}</h4>
-                    <div className="bg-white rounded-2xl border border-brand-muted/10 divide-y divide-brand-muted/5 overflow-hidden">
-                      {dateStories.map((record) => (
-                        <div 
-                          key={record.id}
-                          onClick={() => setSelectedStory(record)}
-                          className="px-4 py-3 hover:bg-brand-muted/5 cursor-pointer flex items-center justify-between group transition-colors"
-                        >
-                          <span className="text-brand-navy font-medium group-hover:text-brand-red transition-colors">
-                            {record.title}
-                          </span>
-                          <span className="text-[10px] text-brand-muted">{record.originCountry}</span>
-                        </div>
-                      ))}
+                    <div className="bg-white rounded-2xl border border-brand-muted/10 p-4">
+                      <div className="flex flex-wrap items-center gap-y-2">
+                        {dateStories.map((record, idx) => (
+                          <React.Fragment key={record.id}>
+                            <span 
+                              onClick={() => setSelectedStory(record)}
+                              className="text-brand-navy font-medium hover:text-brand-red cursor-pointer transition-colors"
+                            >
+                              {record.title}
+                            </span>
+                            {idx < dateStories.length - 1 && (
+                              <span className="text-brand-muted mx-0.5">、</span>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 ))
