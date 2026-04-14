@@ -526,36 +526,36 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="p-8 pt-4 border-t border-brand-muted/10 flex gap-4">
+              <div className="p-8 pt-4 border-t border-brand-muted/10 flex flex-row gap-3">
                 {(selectedStory as StoryRecord).isRead ? (
-                   <div className="flex-1 flex items-center gap-2 text-brand-blue font-bold">
-                     <CheckCircle2 className="w-6 h-6" />
-                     已读完
+                   <div className="flex-1 flex items-center justify-center gap-2 text-brand-blue font-bold bg-brand-blue/5 rounded-2xl py-4">
+                     <CheckCircle2 className="w-5 h-5" />
+                     <span className="text-sm">已读完</span>
                    </div>
                 ) : (
                   <button 
                     onClick={() => markAsRead(selectedStory)}
-                    className="flex-1 bg-brand-red text-white py-4 rounded-2xl font-bold shadow-lg shadow-brand-red/20 hover:scale-[1.02] transition-transform"
+                    className="flex-1 bg-brand-red text-white py-4 rounded-2xl font-bold shadow-lg shadow-brand-red/20 hover:scale-[1.02] transition-transform text-sm"
                   >
                     已读
                   </button>
                 )}
                 <button 
                   onClick={() => handleUnlike(selectedStory)}
-                  className="px-6 py-4 bg-brand-muted/10 text-brand-muted rounded-2xl font-bold hover:bg-brand-navy hover:text-white transition-all"
+                  className="flex-1 py-4 bg-brand-muted/10 text-brand-muted rounded-2xl font-bold hover:bg-brand-navy hover:text-white transition-all text-sm"
                 >
                   不喜欢
                 </button>
                 <button 
                   onClick={() => toggleFavorite(selectedStory)}
-                  className={`px-6 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 text-sm ${
                     (selectedStory as StoryRecord).isFavorite 
                       ? 'bg-brand-red/10 text-brand-red border border-brand-red/20' 
                       : 'bg-brand-navy/5 text-brand-navy hover:bg-brand-navy/10'
                   }`}
                 >
-                  <Heart className={`w-5 h-5 ${(selectedStory as StoryRecord).isFavorite ? 'fill-brand-red' : ''}`} />
-                  {(selectedStory as StoryRecord).isFavorite ? '取消最爱' : '添加到最爱'}
+                  <Heart className={`w-4 h-4 ${(selectedStory as StoryRecord).isFavorite ? 'fill-brand-red' : ''}`} />
+                  {(selectedStory as StoryRecord).isFavorite ? '最爱' : '最爱'}
                 </button>
               </div>
             </motion.div>
