@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - unlikedThemes: list (required)
+    //
+    // Collection: stories (subcollection of users)
+    // Document ID: {storyId}
+    // Fields:
+    //   - title: string (required)
+    //   - content: string (required)
+    //   - type: string (required, enum)
+    //   - originCountry: string (required)
+    //   - readAt: timestamp (required)
+    //   - userId: string (required)
+    //   - isRead: bool (required)
+    //   - isUnliked: bool (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && (email == "" || email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'unlikedThemes']) &&
+             data.uid == request.auth.uid &&
+             (!('email' in data) || isValidEmail(data.email)) &&
+             data.unlikedThemes is list;
+    }
+
+    function isValidStory(data) {
+      return data.keys().hasAll(['title', 'content', 'type', 'originCountry', 'readAt', 'userId', 'isRead', 'isUnliked']) &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() < 200 &&
+             data.content is string && data.content.size() < 5000 &&
+             data.type in ["寓言", "成语故事", "童话", "民间传说", "神话"] &&
+             data.originCountry is string &&
+             data.readAt is number &&
+             data.isRead is bool &&
+             data.isUnliked is bool &&
+             (!('isFavorite' in data) || data.isFavorite is bool);
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUser(request.resource.data);
+      allow delete: if isOwner(userId);
+
+      match /stories/{storyId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidStory(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

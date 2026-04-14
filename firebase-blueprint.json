@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user preferences and reading statistics.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "unlikedThemes": { "type": "array", "items": { "type": "string" }, "description": "Keywords or themes the user dislikes" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Story": {
+      "title": "Story Record",
+      "description": "Records of stories generated and read.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "type": { "type": "string", "enum": ["寓言", "成语故事", "童话", "民间传说", "神话"] },
+        "originCountry": { "type": "string" },
+        "readAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "isUnliked": { "type": "boolean" }
+      },
+      "required": ["title", "content", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/users/{userId}/stories/{storyId}": {
+      "schema": "Story",
+      "description": "User-specific story history"
+    }
+  }
+}
