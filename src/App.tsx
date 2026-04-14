@@ -3,7 +3,7 @@ import { auth, db, signInWithGoogle, signInAsGuest, logOut } from './lib/firebas
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, onSnapshot, query, orderBy, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Heart, BarChart2, LogIn, LogOut, RefreshCw, X, MapPin, CheckCircle2, UserCircle, History } from 'lucide-react';
+import { BookOpen, Heart, BarChart2, LogIn, LogOut, RefreshCw, X, MapPin, CheckCircle2, UserCircle, History, PawPrint } from 'lucide-react';
 import { generateStories, Story as GeminiStory } from './lib/gemini';
 import ReactMarkdown from 'react-markdown';
 import { StoryRecord, UserProfile } from './types';
@@ -93,6 +93,7 @@ export default function App() {
         content: story.content,
         type: story.type,
         originCountry: story.originCountry,
+        imageSearchTerm: story.imageSearchTerm,
         readAt: Date.now(),
         userId: user.uid,
         isRead: true,
@@ -121,6 +122,7 @@ export default function App() {
         content: story.content,
         type: story.type,
         originCountry: story.originCountry,
+        imageSearchTerm: story.imageSearchTerm,
         readAt: Date.now(),
         userId: user.uid,
         isRead: false,
@@ -180,12 +182,15 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center space-y-8 w-full max-w-sm"
         >
-          <div className="w-24 h-24 bg-brand-red rounded-3xl flex items-center justify-center mx-auto shadow-xl">
-            <BookOpen className="w-12 h-12 text-white" />
+          <div className="w-24 h-24 bg-[#8B4513] rounded-[32px] flex items-center justify-center mx-auto shadow-xl border-4 border-white/20">
+            <PawPrint className="w-12 h-12 text-white" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-4xl font-display font-bold text-brand-navy">小熊睡前故事</h1>
-            <p className="text-brand-muted">为宝贝开启奇妙的故事之旅</p>
+            <h1 className="text-4xl md:text-5xl font-display font-bold text-brand-navy leading-tight">
+              小熊睡前故事
+              <span className="block text-xl md:text-2xl mt-1 font-medium text-brand-muted">Little Bear Bedtime Stories</span>
+            </h1>
+            <p className="text-brand-muted text-lg">为宝贝开启奇妙的故事之旅</p>
           </div>
           
           <div className="flex flex-col gap-3">
@@ -223,14 +228,15 @@ export default function App() {
     <div className="min-h-screen pb-32 bg-brand-white">
       {/* Header */}
       <header className="glass-header px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-brand-red rounded-xl flex items-center justify-center">
-            <BookOpen className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-[#8B4513] rounded-2xl flex items-center justify-center shadow-sm">
+            <PawPrint className="w-7 h-7 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="font-display font-bold text-lg text-brand-navy leading-none">小熊睡前故事</span>
+            <span className="font-display font-bold text-xl text-brand-navy leading-none">小熊睡前故事</span>
+            <span className="text-[10px] text-brand-muted font-bold uppercase tracking-wider mb-1">Little Bear Bedtime Stories</span>
             {user.isAnonymous ? (
-              <span className="text-[10px] text-brand-red font-bold uppercase tracking-tighter">游客模式</span>
+              <span className="text-[10px] text-brand-muted font-bold uppercase tracking-tighter bg-brand-muted/10 px-1.5 py-0.5 rounded">游客模式</span>
             ) : (
               <span className="text-[10px] text-brand-blue font-bold uppercase tracking-tighter">已登录: {user.displayName || '用户'}</span>
             )}
@@ -303,7 +309,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {stories.map((story, i) => (
                     <motion.div 
                       key={story.title}
@@ -311,39 +317,34 @@ export default function App() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: i * 0.05 }}
                       onClick={() => setSelectedStory(story)}
-                      className="aspect-square bg-white rounded-2xl shadow-sm border border-brand-muted/10 hover:shadow-xl hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col relative overflow-hidden"
+                      className="aspect-square bg-white rounded-2xl shadow-sm border border-brand-muted/10 hover:shadow-xl hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col relative overflow-hidden p-4"
                     >
-                      {/* Story Cover Image */}
-                      <div className="absolute inset-0 z-0 bg-brand-muted/5">
-                        <img 
-                          src={`https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=400&q=80&sig=${encodeURIComponent(story.imageSearchTerm || story.title)}`}
-                          alt={story.title}
-                          className="w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity duration-500"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(story.title)}`;
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent" />
-                      </div>
-
-                      <div className="z-10 p-4 flex flex-col justify-between h-full">
-                        <div className="flex flex-wrap gap-1">
-                          <span className="px-2 py-1 bg-brand-muted/10 text-brand-blue text-[10px] font-bold rounded-md uppercase tracking-wider">
-                            {story.type}
-                          </span>
-                          {history.some(h => h.title === story.title && h.isRead) && (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-md flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              已读
+                      <div className="z-10 flex flex-col justify-between h-full space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-1">
+                            <span className="px-2 py-1 bg-brand-muted/10 text-brand-blue text-[10px] font-bold rounded-md uppercase tracking-wider">
+                              {story.type}
                             </span>
-                          )}
-                        </div>
-
-                        <div className="space-y-1">
-                          <h3 className="text-brand-navy font-display font-bold text-sm md:text-base leading-tight group-hover:text-brand-red transition-colors line-clamp-3">
+                            {history.some(h => h.title === story.title && h.isRead) && (
+                              <span className="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-md flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                已读
+                              </span>
+                            )}
+                          </div>
+                          
+                          <h3 className="text-brand-navy font-display font-bold text-sm md:text-base leading-tight group-hover:text-brand-red transition-colors line-clamp-2">
                             {story.title}
                           </h3>
+                        </div>
+
+                        <div className="flex-1 overflow-hidden">
+                          <p className="text-[11px] text-brand-muted leading-relaxed line-clamp-3">
+                            {story.content.replace(/[#*`]/g, '').slice(0, 100)}...
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-brand-muted/5">
                           <p className="text-[10px] text-brand-muted font-medium">
                             {story.originCountry}
                           </p>
@@ -372,40 +373,32 @@ export default function App() {
                   <p className="text-brand-muted">还没有读过的故事哦</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {history.filter(h => !h.isUnliked && h.isRead).map((record, i) => (
-                    <motion.div 
-                      key={record.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.05 }}
-                      onClick={() => setSelectedStory(record)}
-                      className="aspect-square bg-white rounded-2xl p-4 shadow-sm border border-brand-muted/10 hover:shadow-xl hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col justify-between relative overflow-hidden"
-                    >
-                      <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <History className="w-12 h-12 text-brand-navy" />
-                      </div>
-                      
-                      <div className="z-10 flex flex-col gap-1">
-                        <span className="px-2 py-1 bg-brand-muted/10 text-brand-blue text-[10px] font-bold rounded-md uppercase tracking-wider w-fit">
-                          {record.type}
-                        </span>
-                        <span className="text-[10px] text-brand-muted font-bold">
-                          {new Date(record.readAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
-                        </span>
-                      </div>
-
-                      <div className="z-10 space-y-1">
-                        <h3 className="text-brand-navy font-display font-bold text-sm md:text-base leading-tight group-hover:text-brand-red transition-colors line-clamp-3">
-                          {record.title}
-                        </h3>
-                        <p className="text-[10px] text-brand-muted font-medium">
-                          {record.originCountry}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                Object.entries(
+                  history.filter(h => !h.isUnliked && h.isRead).reduce((acc, curr) => {
+                    const date = new Date(curr.readAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+                    if (!acc[date]) acc[date] = [];
+                    acc[date].push(curr);
+                    return acc;
+                  }, {} as Record<string, StoryRecord[]>)
+                ).map(([date, dateStories], i) => (
+                  <div key={date} className="space-y-2">
+                    <h4 className="text-xs font-bold text-brand-muted uppercase tracking-wider pl-2">{date}</h4>
+                    <div className="bg-white rounded-2xl border border-brand-muted/10 divide-y divide-brand-muted/5 overflow-hidden">
+                      {dateStories.map((record) => (
+                        <div 
+                          key={record.id}
+                          onClick={() => setSelectedStory(record)}
+                          className="px-4 py-3 hover:bg-brand-muted/5 cursor-pointer flex items-center justify-between group transition-colors"
+                        >
+                          <span className="text-brand-navy font-medium group-hover:text-brand-red transition-colors">
+                            {record.title}
+                          </span>
+                          <span className="text-[10px] text-brand-muted">{record.originCountry}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
               )}
             </motion.div>
           )}
@@ -426,35 +419,21 @@ export default function App() {
                   <p className="text-brand-muted">还没有收藏的故事哦</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {history.filter(h => !h.isUnliked && h.isFavorite).map((record, i) => (
-                    <motion.div 
+                <div className="bg-white rounded-2xl border border-brand-muted/10 divide-y divide-brand-muted/5 overflow-hidden">
+                  {history.filter(h => !h.isUnliked && h.isFavorite).map((record) => (
+                    <div 
                       key={record.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.05 }}
                       onClick={() => setSelectedStory(record)}
-                      className="aspect-square bg-white rounded-2xl p-4 shadow-sm border border-brand-muted/10 hover:shadow-xl hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col justify-between relative overflow-hidden"
+                      className="px-4 py-3 hover:bg-brand-muted/5 cursor-pointer flex items-center justify-between group transition-colors"
                     >
-                      <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Heart className="w-12 h-12 text-brand-red" />
-                      </div>
-                      
-                      <div className="z-10">
-                        <span className="px-2 py-1 bg-brand-muted/10 text-brand-blue text-[10px] font-bold rounded-md uppercase tracking-wider">
-                          {record.type}
+                      <div className="flex items-center gap-3">
+                        <Heart className="w-4 h-4 text-brand-red fill-brand-red" />
+                        <span className="text-brand-navy font-medium group-hover:text-brand-red transition-colors">
+                          {record.title}
                         </span>
                       </div>
-
-                      <div className="z-10 space-y-1">
-                        <h3 className="text-brand-navy font-display font-bold text-sm md:text-base leading-tight group-hover:text-brand-red transition-colors line-clamp-3">
-                          {record.title}
-                        </h3>
-                        <p className="text-[10px] text-brand-muted font-medium">
-                          {record.originCountry}
-                        </p>
-                      </div>
-                    </motion.div>
+                      <span className="text-[10px] text-brand-muted">{record.originCountry}</span>
+                    </div>
                   ))}
                 </div>
               )}
@@ -519,26 +498,14 @@ export default function App() {
               onClick={(e) => e.stopPropagation()}
               className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[40px] overflow-hidden flex flex-col relative shadow-2xl"
             >
-              <div className="relative h-48 md:h-64 overflow-hidden bg-brand-muted/5">
-                <img 
-                  src={`https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=800&q=80&sig=${encodeURIComponent(selectedStory.imageSearchTerm || selectedStory.title)}`}
-                  alt={selectedStory.title}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/shapes/svg?seed=${encodeURIComponent(selectedStory.title)}`;
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent" />
+              <div className="p-8 pb-4 space-y-4 relative">
                 <button 
                   onClick={() => setSelectedStory(null)}
-                  className="absolute top-6 right-6 p-2 bg-white/80 backdrop-blur-md rounded-full hover:bg-brand-red hover:text-white transition-all z-10 shadow-lg"
+                  className="absolute top-6 right-6 p-2 bg-brand-muted/10 rounded-full hover:bg-brand-red hover:text-white transition-all z-10"
                 >
                   <X className="w-6 h-6" />
                 </button>
-              </div>
-
-              <div className="p-8 pb-4 space-y-4">
+                
                 <div className="flex items-center gap-3">
                   <span className="px-4 py-1.5 bg-brand-red/10 text-brand-red text-sm font-bold rounded-full">
                     {selectedStory.type}
@@ -554,7 +521,7 @@ export default function App() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-8 pt-0 custom-scrollbar">
-                <div className="markdown-body prose prose-lg max-w-none">
+                <div className="markdown-body prose prose-lg max-w-none text-brand-navy leading-relaxed">
                   <ReactMarkdown>{selectedStory.content}</ReactMarkdown>
                 </div>
               </div>

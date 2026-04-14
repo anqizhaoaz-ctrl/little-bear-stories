@@ -12,6 +12,7 @@ export interface StoryRecord {
   content: string;
   type: "寓言" | "成语故事" | "童话" | "民间传说" | "神话";
   originCountry: string;
+  imageSearchTerm?: string;
   readAt: number;
   userId: string;
   isRead: boolean;

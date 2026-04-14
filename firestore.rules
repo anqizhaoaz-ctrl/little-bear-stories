@@ -21,10 +21,12 @@ service cloud.firestore {
     //   - content: string (required)
     //   - type: string (required, enum)
     //   - originCountry: string (required)
+    //   - imageSearchTerm: string (optional)
     //   - readAt: timestamp (required)
     //   - userId: string (required)
     //   - isRead: bool (required)
     //   - isUnliked: bool (required)
+    //   - isFavorite: bool (optional)
     //
     // ===============================================================
 
@@ -57,13 +59,14 @@ service cloud.firestore {
       return data.keys().hasAll(['title', 'content', 'type', 'originCountry', 'readAt', 'userId', 'isRead', 'isUnliked']) &&
              data.userId == request.auth.uid &&
              data.title is string && data.title.size() < 200 &&
-             data.content is string && data.content.size() < 5000 &&
+             data.content is string && data.content.size() < 10000 &&
              data.type in ["寓言", "成语故事", "童话", "民间传说", "神话"] &&
              data.originCountry is string &&
              data.readAt is number &&
              data.isRead is bool &&
              data.isUnliked is bool &&
-             (!('isFavorite' in data) || data.isFavorite is bool);
+             (!('isFavorite' in data) || data.isFavorite is bool) &&
+             (!('imageSearchTerm' in data) || data.imageSearchTerm is string);
     }
 
     match /users/{userId} {
