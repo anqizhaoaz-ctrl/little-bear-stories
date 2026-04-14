@@ -279,7 +279,7 @@ export default function App() {
               className="space-y-6"
             >
               <div className="flex items-center justify-between">
-                <p className="text-brand-muted text-sm">每天为你准备 10 个新鲜故事</p>
+                <p className="text-brand-muted text-sm">每天为你准备 12 个新鲜故事</p>
                 <button 
                   onClick={handleRefresh}
                   disabled={loading}
@@ -309,7 +309,7 @@ export default function App() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {stories.map((story, i) => (
                     <motion.div 
                       key={story.title}
@@ -317,33 +317,33 @@ export default function App() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: i * 0.05 }}
                       onClick={() => setSelectedStory(story)}
-                      className="aspect-square bg-white rounded-xl shadow-sm border border-brand-muted/10 hover:shadow-md hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col relative overflow-hidden p-2.5"
+                      className="aspect-square bg-white rounded-2xl shadow-sm border border-brand-muted/10 hover:shadow-xl hover:border-brand-red/20 transition-all duration-300 cursor-pointer group flex flex-col relative overflow-hidden p-4"
                     >
-                      <div className="z-10 flex flex-col justify-between h-full space-y-1.5">
-                        <div className="space-y-1">
+                      <div className="z-10 flex flex-col justify-between h-full space-y-2">
+                        <div className="space-y-1.5">
                           <div className="flex flex-wrap gap-1">
-                            <span className="px-1.5 py-0.5 bg-brand-muted/10 text-brand-blue text-[8px] font-bold rounded uppercase tracking-wider">
+                            <span className="px-2 py-1 bg-brand-muted/10 text-brand-blue text-[10px] font-bold rounded-md uppercase tracking-wider">
                               {story.type}
                             </span>
                           </div>
                           
-                          <h3 className="text-brand-navy font-display font-bold text-[11px] md:text-xs leading-tight group-hover:text-brand-red transition-colors line-clamp-2">
+                          <h3 className="text-brand-navy font-display font-bold text-sm md:text-base leading-tight group-hover:text-brand-red transition-colors line-clamp-2">
                             {story.title}
                           </h3>
                         </div>
 
                         <div className="flex-1 overflow-hidden">
-                          <p className="text-[9px] text-brand-muted leading-tight line-clamp-3">
-                            {story.content.replace(/[#*`]/g, '').slice(0, 60)}...
+                          <p className="text-[11px] text-brand-muted leading-relaxed line-clamp-3">
+                            {story.content.replace(/[#*`]/g, '').slice(0, 80)}...
                           </p>
                         </div>
 
-                        <div className="pt-1 border-t border-brand-muted/5 flex justify-between items-center">
-                          <p className="text-[8px] text-brand-muted font-medium truncate max-w-[70%]">
+                        <div className="pt-2 border-t border-brand-muted/5 flex justify-between items-center">
+                          <p className="text-[10px] text-brand-muted font-medium truncate max-w-[80%]">
                             {story.originCountry}
                           </p>
                           {history.some(h => h.title === story.title && h.isRead) && (
-                            <CheckCircle2 className="w-2.5 h-2.5 text-green-500" />
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
                           )}
                         </div>
                       </div>

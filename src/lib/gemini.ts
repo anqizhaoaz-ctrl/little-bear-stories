@@ -13,9 +13,9 @@ export interface Story {
 }
 
 export async function generateStories(unlikedThemes: string[] = [], readTitles: string[] = []): Promise<Story[]> {
-  const prompt = `为5岁半的小男孩生成9个睡前故事。
+  const prompt = `为5岁半的小男孩生成12个睡前故事。
   要求：
-  1. 数量：正好9个。
+  1. 数量：正好12个。
   2. 字数：每个故事200-400字。
   3. 结构：每个故事的内容必须根据情节或起承转合拆分成2-3段文字，段落之间使用两个换行符（\n\n）分隔，以增加留白，提高阅读体验。
   4. 类型：包含 寓言、成语故事、童话、民间传说、神话。
